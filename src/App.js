@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import Matter from "matter-js";
 import styled from "styled-components";
 
