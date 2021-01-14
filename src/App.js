@@ -1,6 +1,9 @@
 import React from "react";
+import ReactDOMServer from "react-dom/server";
 import Matter from "matter-js";
 import styled from "styled-components";
+import $ from "jquery";
+import A from "./svg/A";
 
 const Container = styled.div`
   width: 100%;
@@ -17,15 +20,25 @@ class Scene extends React.Component {
   }
 
   componentDidMount() {
-    const { Engine, Render, World, Bodies, Mouse, MouseConstraint } = Matter;
+    const {
+      Engine,
+      Render,
+      World,
+      Bodies,
+      Mouse,
+      MouseConstraint,
+      Svg,
+      Common,
+      Vertices,
+    } = Matter;
 
     const engine = Engine.create({
       // positionIterations: 20
     });
+    const { world } = engine;
     const width = (window.innerWidth * 80) / 100;
     const height = (window.innerHeight * 80) / 100;
     const wallthick = 100;
-    console.log("window.innerHeight", window.innerHeight, window.innerWidth);
 
     const render = Render.create({
       element: this.refs.scene,
@@ -37,9 +50,12 @@ class Scene extends React.Component {
       },
     });
 
-    const ballA = Bodies.circle(210, 100, 30, { restitution: 0.5 });
+    const ballA = Bodies.circle(210, 100, 30, {
+      restitution: 0.5,
+    });
+
     const ballB = Bodies.circle(110, 50, 30, { restitution: 0.5 });
-    World.add(engine.world, [
+    World.add(world, [
       // walls
 
       Bodies.rectangle(0, height / 2, wallthick, height, { isStatic: true }), //left
@@ -50,7 +66,41 @@ class Scene extends React.Component {
       Bodies.rectangle(width / 2, height, width, wallthick, { isStatic: true }), // bottom
     ]);
 
-    World.add(engine.world, [ballA, ballB]);
+    World.add(world, [ballA, ballB]);
+    const data = ReactDOMServer.renderToStaticMarkup(A());
+    console.log("data", data);
+
+    var vertexSets = [],
+      color = Common.choose([
+        "#f19648",
+        "#f5d259",
+        "#f55a3c",
+        "#063e7b",
+        "#ececd1",
+      ]);
+
+    $(data)
+      .find("path")
+      .each(function (i, path) {
+        vertexSets.push(Svg.pathToVertices(path, 30));
+      });
+
+    World.add(
+      world,
+      Bodies.fromVertices(
+        400,
+        80,
+        vertexSets,
+        {
+          render: {
+            fillStyle: color,
+            strokeStyle: color,
+            lineWidth: 1,
+          },
+        },
+        true
+      )
+    );
 
     // add mouse control
     const mouse = Mouse.create(render.canvas),
@@ -64,10 +114,10 @@ class Scene extends React.Component {
         },
       });
 
-    World.add(engine.world, mouseConstraint);
+    World.add(world, mouseConstraint);
 
     Matter.Events.on(mouseConstraint, "mousedown", function (event) {
-      World.add(engine.world, Bodies.circle(150, 50, 30, { restitution: 0.7 }));
+      World.add(world, Bodies.circle(150, 50, 30, { restitution: 0.7 }));
     });
 
     Engine.run(engine);
@@ -76,7 +126,11 @@ class Scene extends React.Component {
   }
 
   render() {
-    return <Container ref="scene" />;
+    return (
+      <>
+        <Container ref="scene" />
+      </>
+    );
   }
 }
 export default Scene;
