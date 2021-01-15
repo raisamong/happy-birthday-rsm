@@ -3,7 +3,7 @@ import ReactDOMServer from "react-dom/server";
 import Matter from "matter-js";
 import styled from "styled-components";
 import $ from "jquery";
-import A from "./svg/A";
+import G from "./svg/G";
 
 const Container = styled.div`
   width: 100%;
@@ -17,6 +17,8 @@ const { Engine, Render, World, Bodies, Mouse, MouseConstraint, Svg } = Matter;
 
 const randomColor = () =>
   `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+const randomNumber = (min = 0, max = 10) =>
+  Math.floor(Math.random() * max) + min;
 
 function makePattern(pWidth) {
   var canvas = document.createElement("canvas");
@@ -54,9 +56,7 @@ class Scene extends React.Component {
   }
 
   componentDidMount() {
-    const engine = Engine.create({
-      // positionIterations: 20
-    });
+    const engine = Engine.create();
     const { world } = engine;
     const width = (window.innerWidth * 80) / 100;
     const height = (window.innerHeight * 80) / 100;
@@ -81,7 +81,6 @@ class Scene extends React.Component {
     });
     World.add(world, [
       // walls
-
       Bodies.rectangle(0, height / 2, wallthick, height, { isStatic: true }), //left
       Bodies.rectangle(width, height / 2, wallthick, height, {
         isStatic: true,
@@ -91,33 +90,36 @@ class Scene extends React.Component {
     ]);
 
     World.add(world, [ballA, ballB]);
-    const data = ReactDOMServer.renderToStaticMarkup(A());
-    console.log("data", data);
+    const alphabets = [G, G, G, G, G];
+    alphabets.forEach((alphabet) => {
+      const data = ReactDOMServer.renderToStaticMarkup(alphabet());
+      console.log("data", data);
 
-    const vertexSets = [];
+      const vertexSets = [];
 
-    $(data)
-      .find("path")
-      .each(function (i, path) {
-        vertexSets.push(Svg.pathToVertices(path, 100));
-      });
+      $(data)
+        .find("path")
+        .each(function (i, path) {
+          vertexSets.push(Svg.pathToVertices(path, 100));
+        });
 
-    World.add(
-      world,
-      Bodies.fromVertices(
-        width / 2,
-        height / 2,
-        vertexSets,
-        {
-          render: {
-            fillStyle: makePattern(),
-            strokeStyle: randomColor(),
-            lineWidth: 1,
+      World.add(
+        world,
+        Bodies.fromVertices(
+          randomNumber(100, width - 100),
+          randomNumber(50, height / 2),
+          vertexSets,
+          {
+            render: {
+              fillStyle: makePattern(),
+              strokeStyle: randomColor(),
+              lineWidth: 1,
+            },
           },
-        },
-        true
-      )
-    );
+          true
+        )
+      );
+    });
 
     // add mouse control
     const mouse = Mouse.create(render.canvas),
