@@ -21,6 +21,7 @@ const Container = styled.div`
 `;
 
 const {
+  Common,
   Engine,
   Render,
   World,
@@ -29,6 +30,7 @@ const {
   Mouse,
   MouseConstraint,
   Svg,
+  Composites,
 } = Matter;
 
 const randomColor = () =>
@@ -78,10 +80,13 @@ function makePattern(pWidth) {
 class Scene extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      a: "1",
+    };
   }
 
   componentDidMount() {
+    const _this = this;
     const engine = Engine.create();
     const { world } = engine;
     const width = window.innerWidth; // (window.innerWidth * 80) / 100;
@@ -97,9 +102,21 @@ class Scene extends React.Component {
         wireframes: false,
       },
     });
+    const categoryName = {
+      1: "wall",
+      2: "alphabet",
+      3: "collector",
+    };
+    const wallCategory = 0x0001,
+      alphabetCategory = 0x0002,
+      collectorCategory = 0x0003;
 
     // add wall
     const wallOptions = {
+      label: "wall",
+      collisionFilter: {
+        category: wallCategory,
+      },
       isStatic: true,
       render: {
         visible: false,
@@ -114,37 +131,40 @@ class Scene extends React.Component {
     // end add wall
 
     // add bodies from SVG
-    const alphabets = [G, I, F, T, S, P, R, I, T, E];
-    const fillStyle = makePattern();
-    const strokeStyle = randomColor();
-    alphabets.forEach((alphabet) => {
-      const data = ReactDOMServer.renderToStaticMarkup(alphabet());
-      const vertexSets = [];
+    // const alphabets = [T];
+    // const fillStyle = makePattern();
+    // const strokeStyle = randomColor();
+    // alphabets.forEach((alphabet) => {
+    //   const data = ReactDOMServer.renderToStaticMarkup(alphabet());
+    //   const vertexSets = [];
 
-      $(data)
-        .find("path")
-        .each(function (i, path) {
-          vertexSets.push(Svg.pathToVertices(path, 100));
-        });
+    //   $(data)
+    //     .find("path")
+    //     .each(function (i, path) {
+    //       vertexSets.push(Svg.pathToVertices(path, 100));
+    //     });
 
-      const body = Bodies.fromVertices(
-        randomNumber(100, width - 100),
-        randomNumber(50, height / 2),
-        vertexSets,
-        {
-          render: {
-            fillStyle,
-            strokeStyle,
-            lineWidth: 1,
-          },
-        },
-        true
-      );
+    //   const body = Bodies.fromVertices(
+    //     randomNumber(100, width - 100),
+    //     randomNumber(50, height / 2),
+    //     vertexSets,
+    //     {
+    //       render: {
+    //         fillStyle,
+    //         strokeStyle,
+    //         lineWidth: 1,
+    //         sprite: {
+    //           texture: "png/008-g.png",
+    //         },
+    //       },
+    //     },
+    //     true
+    //   );
 
-      Body.scale(body, 0.2, 0.2);
+    //   Body.scale(body, 0.2, 0.2);
 
-      World.add(world, body);
-    });
+    //   World.add(world, body);
+    // });
     // end add bodies from SVG
 
     // add mouse control
@@ -160,27 +180,72 @@ class Scene extends React.Component {
       });
 
     World.add(world, mouseConstraint);
+    console.log("mouseConstraint", mouseConstraint);
 
-    Matter.Events.on(mouseConstraint, "mousedown", function (event) {
-      console.log("event", event);
+    Matter.Events.on(mouseConstraint, "mousedown", function (e) {
+      console.log("mousedown", e);
       // World.add(world, Bodies.circle(150, 50, 30, { restitution: 0.7 }));
+    });
+
+    Matter.Events.on(mouseConstraint, "startdrag", function (e) {
+      const { body } = e;
+      Body.setAngle(body, 0);
+    });
+
+    Matter.Events.on(mouseConstraint, "enddrag", function (e) {
+      const { body } = e;
+      Body.setAngle(body, 0);
     });
     // end add mouse control
 
-    const ballA = Bodies.circle(210, 100, 64, {
-      restitution: 0.5,
-    });
-
-    const ballB = Bodies.circle(210, 100, 64, {
-      restitution: 0.5,
-      render: {
-        sprite: {
-          texture: "png/008-g.png",
+    const x = width / 2; //randomNumber(100, width - 100);
+    const y = height / 4; //randomNumber(50, height / 2);
+    // const alphabetsImage = ["g", "i", "f", "t", "s", "p", "r", "i", "t", "e"];
+    const alphabetsImage = ["g", "i"];
+    const bodiesToPush = alphabetsImage.map((alphabet) => {
+      const size = 128;
+      const ratio = width < 720 ? 2 : width < 1080 ? 1.5 : 1;
+      const body = Bodies.circle(x, y, size / 2 / ratio, {
+        label: alphabet,
+        collisionFilter: {
+          category: alphabetCategory,
         },
-      },
+        restitution: 0.9,
+        render: {
+          sprite: {
+            texture: `png/${alphabet}.png`,
+            xScale: 1 / ratio,
+            yScale: 1 / ratio,
+          },
+        },
+      });
+
+      // Body.applyForce(
+      //   body,
+      //   { x: body.position.x, y: body.position.y },
+      //   { x: Math.random(), y: Math.random() }
+      // );
+
+      return body;
     });
 
-    World.add(world, [ballA, ballB]);
+    // var stack = Composites.stack(x, y, 10, 8, 10, 10, function (x, y) {
+    //   return Bodies.circle(x, y, Common.random(15, 30), {
+    //     restitution: 0.6,
+    //     friction: 0.1,
+    //   });
+    // });
+
+    World.add(world, [...bodiesToPush]);
+
+    Matter.Events.on(engine, "collisionStart", function (event) {
+      const { pairs } = event;
+      const { category: cateA } = pairs[0].bodyA.collisionFilter;
+      const { category: cateB } = pairs[0].bodyB.collisionFilter;
+      const cateBodyA = categoryName[cateA];
+      const cateBodyB = categoryName[cateB];
+      console.log("colision between " + cateBodyA + " - " + cateBodyB);
+    });
 
     Engine.run(engine);
 
