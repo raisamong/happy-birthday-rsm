@@ -92,6 +92,7 @@ class Scene extends React.Component {
     const width = window.innerWidth; // (window.innerWidth * 80) / 100;
     const height = window.innerHeight; // (window.innerHeight * 80) / 100;
     const wallthick = 10;
+    const ratio = width < 720 ? 2 : width < 1080 ? 1.5 : 1;
 
     const render = Render.create({
       element: this.refs.scene,
@@ -199,12 +200,11 @@ class Scene extends React.Component {
     // end add mouse control
 
     const x = width / 2; //randomNumber(100, width - 100);
-    const y = height / 4; //randomNumber(50, height / 2);
+    const y = height / 2; //randomNumber(50, height / 2);
     // const alphabetsImage = ["g", "i", "f", "t", "s", "p", "r", "i", "t", "e"];
-    const alphabetsImage = ["g", "i"];
+    const alphabetsImage = ["g", "i", "f", "t"];
     const bodiesToPush = alphabetsImage.map((alphabet) => {
       const size = 128;
-      const ratio = width < 720 ? 2 : width < 1080 ? 1.5 : 1;
       const body = Bodies.circle(x, y, size / 2 / ratio, {
         label: alphabet,
         collisionFilter: {
@@ -238,13 +238,74 @@ class Scene extends React.Component {
 
     World.add(world, [...bodiesToPush]);
 
+    const collectorBodies = [];
+    const widthStart = width / 8;
+    const fillStyle = makePattern();
+    const strokeStyle = randomColor();
+    for (let index = 1; index <= 4; index++) {
+      const size = widthStart;
+      const thick = 20;
+      const xPos = widthStart * index * 2 - widthStart;
+      const yPos = height / 3;
+      const collectorBodyOptions = {
+        isStatic: true,
+        render: {
+          fillStyle,
+          strokeStyle,
+          lineWidth: 1,
+        },
+      };
+      const partA = Bodies.rectangle(xPos, yPos - 10, size, thick, {
+        ...collectorBodyOptions,
+        collisionFilter: {
+          category: collectorCategory,
+        },
+      });
+      const partD = Bodies.rectangle(
+        xPos,
+        yPos,
+        size,
+        thick,
+        collectorBodyOptions
+      );
+      const partB = Bodies.rectangle(
+        xPos - size / 2,
+        yPos - size / 5,
+        thick,
+        size / 2,
+        collectorBodyOptions
+      );
+      const partC = Bodies.rectangle(
+        xPos + size / 2,
+        yPos - size / 5,
+        thick,
+        size / 2,
+        collectorBodyOptions
+      );
+
+      const compoundBody = Body.create({
+        parts: [partA, partB, partC, partD],
+        isStatic: true,
+      });
+
+      collectorBodies.push(compoundBody);
+    }
+
+    World.add(world, [...collectorBodies]);
+
     Matter.Events.on(engine, "collisionStart", function (event) {
       const { pairs } = event;
+      const { bodyA } = pairs[0];
       const { category: cateA } = pairs[0].bodyA.collisionFilter;
       const { category: cateB } = pairs[0].bodyB.collisionFilter;
+      // console.log("colision between ", pairs[0].bodyA, pairs[0].bodyB);
       const cateBodyA = categoryName[cateA];
       const cateBodyB = categoryName[cateB];
-      console.log("colision between " + cateBodyA + " - " + cateBodyB);
+
+      if (cateBodyB === categoryName[3]) {
+        console.log("colision between " + cateBodyA + " - " + cateBodyB);
+        Body.setAngle(bodyA, 0);
+      }
     });
 
     Engine.run(engine);
