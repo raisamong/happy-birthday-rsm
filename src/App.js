@@ -45,6 +45,26 @@ const randomColor = () =>
 //   return color;
 // };
 
+function shuffle(array) {
+  var currentIndex = array.length,
+    temporaryValue,
+    randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+
 const randomNumber = (min = 0, max = 10) =>
   Math.floor(Math.random() * max) + min;
 
@@ -92,7 +112,7 @@ class Scene extends React.Component {
     const width = window.innerWidth; // (window.innerWidth * 80) / 100;
     const height = window.innerHeight; // (window.innerHeight * 80) / 100;
     const wallthick = 10;
-    const ratio = width < 720 ? 2 : width < 1080 ? 1.5 : 1;
+    const ratio = width < 720 ? 2 : width < 1080 ? 1.5 : 1.25;
 
     const render = Render.create({
       element: this.refs.scene,
@@ -101,6 +121,7 @@ class Scene extends React.Component {
         width,
         height,
         wireframes: false,
+        background: "#FDE0E5",
       },
     });
     const categoryName = {
@@ -199,11 +220,33 @@ class Scene extends React.Component {
     });
     // end add mouse control
 
-    const x = width / 2; //randomNumber(100, width - 100);
+    let x = width / 22; //randomNumber(100, width - 100);
     const y = height / 2; //randomNumber(50, height / 2);
     // const alphabetsImage = ["g", "i", "f", "t", "s", "p", "r", "i", "t", "e"];
-    const alphabetsImage = ["g", "i", "f", "t"];
-    const bodiesToPush = alphabetsImage.map((alphabet) => {
+    const alphabetsImage = [
+      "g",
+      "i",
+      "f",
+      "t",
+      "s",
+      "p",
+      "r",
+      "i",
+      "t",
+      "e",
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+    ];
+    const bodiesToPush = shuffle(alphabetsImage).map((alphabet) => {
       const size = 128;
       const body = Bodies.circle(x, y, size / 2 / ratio, {
         label: alphabet,
@@ -219,6 +262,7 @@ class Scene extends React.Component {
           },
         },
       });
+      x += width / 22;
 
       // Body.applyForce(
       //   body,
