@@ -210,13 +210,13 @@ class Scene extends React.Component {
     });
 
     Matter.Events.on(mouseConstraint, "startdrag", function (e) {
-      const { body } = e;
-      Body.setAngle(body, 0);
+      // const { body } = e;
+      // Body.setAngle(body, 0);
     });
 
     Matter.Events.on(mouseConstraint, "enddrag", function (e) {
-      const { body } = e;
-      Body.setAngle(body, 0);
+      // const { body } = e;
+      // Body.setAngle(body, 0);
     });
     // end add mouse control
 
@@ -294,41 +294,48 @@ class Scene extends React.Component {
       const collectorBodyOptions = {
         isStatic: true,
         render: {
-          fillStyle,
-          strokeStyle,
-          lineWidth: 1,
+          fillStyle: "#FDB876",
+          lineWidth: 5,
+          strokeStyle: "#000",
         },
+        chamfer: { radius: 10 },
       };
-      const partA = Bodies.rectangle(xPos, yPos - 10, size, thick, {
+      const trigger = Bodies.rectangle(xPos, yPos - 10, size, thick, {
         ...collectorBodyOptions,
         collisionFilter: {
           category: collectorCategory,
         },
+        render: {
+          visible: false,
+        },
       });
-      const partD = Bodies.rectangle(
-        xPos,
-        yPos,
-        size,
-        thick,
-        collectorBodyOptions
-      );
-      const partB = Bodies.rectangle(
-        xPos - size / 2,
+
+      const base = Bodies.rectangle(xPos, yPos, size, thick, {
+        ...collectorBodyOptions,
+      });
+      const left = Bodies.rectangle(
+        xPos - size / 2.25,
         yPos - size / 5,
         thick,
         size / 2,
-        collectorBodyOptions
+        { ...collectorBodyOptions }
       );
-      const partC = Bodies.rectangle(
-        xPos + size / 2,
+      const right = Bodies.rectangle(
+        xPos + size / 2.25,
         yPos - size / 5,
         thick,
         size / 2,
-        collectorBodyOptions
+        {
+          ...collectorBodyOptions,
+          render: {
+            ...collectorBodyOptions.render,
+            fillStyle: "#E4A669",
+          },
+        }
       );
 
       const compoundBody = Body.create({
-        parts: [partA, partB, partC, partD],
+        parts: [trigger, left, right, base],
         isStatic: true,
       });
 
