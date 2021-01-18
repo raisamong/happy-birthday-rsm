@@ -121,7 +121,7 @@ class Scene extends React.Component {
         width,
         height,
         wireframes: false,
-        background: "#FDE0E5",
+        background: "#F8A7BA",
       },
     });
     const categoryName = {
@@ -367,7 +367,17 @@ class Scene extends React.Component {
   render() {
     return (
       <>
-        <Container ref="scene" />
+        <Container ref="scene">
+          <h1
+            class="zoomInDown"
+            style={{
+              position: "absolute",
+              backgroundColor: "red",
+            }}
+          >
+            Please spell your nickname.
+          </h1>
+        </Container>
       </>
     );
   }
