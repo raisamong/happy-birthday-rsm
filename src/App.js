@@ -65,6 +65,10 @@ function shuffle(array) {
   return array;
 }
 
+function capitalizeFirstLetter(string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 const randomNumber = (min = 0, max = 10) =>
   Math.floor(Math.random() * max) + min;
 
@@ -101,7 +105,7 @@ class Scene extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      a: "1",
+      name: "    ",
     };
   }
 
@@ -128,10 +132,12 @@ class Scene extends React.Component {
       1: "wall",
       2: "alphabet",
       3: "collector",
+      4: "decoration",
     };
     const wallCategory = 0x0001,
       alphabetCategory = 0x0002,
-      collectorCategory = 0x0003;
+      collectorCategory = 0x0003,
+      dbCategory = 0x0004;
 
     // add wall
     const wallOptions = {
@@ -205,7 +211,7 @@ class Scene extends React.Component {
     console.log("mouseConstraint", mouseConstraint);
 
     Matter.Events.on(mouseConstraint, "mousedown", function (e) {
-      console.log("mousedown", e);
+      // console.log("mousedown", e);
       // World.add(world, Bodies.circle(150, 50, 30, { restitution: 0.7 }));
     });
 
@@ -247,11 +253,12 @@ class Scene extends React.Component {
       11,
     ];
     const bodiesToPush = shuffle(alphabetsImage).map((alphabet) => {
+      const isNumber = typeof alphabet === "number";
       const size = 128;
       const body = Bodies.circle(x, y, size / 2 / ratio, {
         label: alphabet,
         collisionFilter: {
-          category: alphabetCategory,
+          category: isNumber ? dbCategory : alphabetCategory,
         },
         restitution: 0.9,
         render: {
@@ -292,6 +299,10 @@ class Scene extends React.Component {
       const xPos = widthStart * index * 2 - widthStart;
       const yPos = height / 3;
       const collectorBodyOptions = {
+        collisionFilter: {
+          category: collectorCategory,
+          group: index,
+        },
         isStatic: true,
         render: {
           fillStyle: "#FDB876",
@@ -300,15 +311,6 @@ class Scene extends React.Component {
         },
         chamfer: { radius: 10 },
       };
-      const trigger = Bodies.rectangle(xPos, yPos - 10, size, thick, {
-        ...collectorBodyOptions,
-        collisionFilter: {
-          category: collectorCategory,
-        },
-        render: {
-          visible: false,
-        },
-      });
 
       const base = Bodies.rectangle(xPos, yPos, size, thick, {
         ...collectorBodyOptions,
@@ -335,8 +337,12 @@ class Scene extends React.Component {
       );
 
       const compoundBody = Body.create({
-        parts: [trigger, left, right, base],
+        parts: [left, right, base],
         isStatic: true,
+        collisionFilter: {
+          category: collectorCategory,
+          group: index,
+        },
       });
 
       collectorBodies.push(compoundBody);
@@ -344,19 +350,57 @@ class Scene extends React.Component {
 
     World.add(world, [...collectorBodies]);
 
-    Matter.Events.on(engine, "collisionStart", function (event) {
+    Matter.Events.on(engine, "collisionEnd", function (event) {
       const { pairs } = event;
       const { bodyA } = pairs[0];
       const { category: cateA } = pairs[0].bodyA.collisionFilter;
-      const { category: cateB } = pairs[0].bodyB.collisionFilter;
-      // console.log("colision between ", pairs[0].bodyA, pairs[0].bodyB);
+      const {
+        category: cateB,
+        group: alphabetIndex,
+      } = pairs[0].bodyB.collisionFilter;
       const cateBodyA = categoryName[cateA];
       const cateBodyB = categoryName[cateB];
 
-      if (cateBodyB === categoryName[3]) {
-        console.log("colision between " + cateBodyA + " - " + cateBodyB);
+      if (cateBodyB === categoryName[3] && cateBodyA === categoryName[2]) {
+        // console.log("colision between ", pairs[0].bodyA, pairs[0].bodyB);
         Body.setAngle(bodyA, 0);
+        const { label: alphabetCollised } = bodyA;
+        console.log(
+          "colision end between " + alphabetCollised + " - " + alphabetIndex
+        );
+        var chars = _this.state.name.split("");
+        chars[alphabetIndex - 1] = " ";
+        chars.join("");
+        _this.setState({
+          name: chars.join(""),
+        });
       }
+    });
+
+    Matter.Events.on(engine, "collisionActive", function (event) {
+      const { pairs } = event;
+
+      pairs.forEach((pair) => {
+        const { bodyA } = pair;
+        const { category: cateA } = pair.bodyA.collisionFilter;
+        const {
+          category: cateB,
+          group: alphabetIndex,
+        } = pair.bodyB.collisionFilter;
+        const cateBodyA = categoryName[cateA];
+        const cateBodyB = categoryName[cateB];
+
+        if (cateBodyB === categoryName[3] && cateBodyA === categoryName[2]) {
+          Body.setAngle(bodyA, 0);
+          const { label: alphabetCollised } = bodyA;
+          var chars = _this.state.name.split("");
+          chars[alphabetIndex - 1] = alphabetCollised;
+          chars.join("");
+          _this.setState({
+            name: chars.join(""),
+          });
+        }
+      });
     });
 
     Engine.run(engine);
@@ -365,18 +409,23 @@ class Scene extends React.Component {
   }
 
   render() {
+    const trimedName = this.state.name.replaceAll(" ", "");
+
     return (
       <>
         <Container ref="scene">
-          <h1
-            class="zoomInDown"
+          <div
             style={{
               position: "absolute",
-              backgroundColor: "red",
             }}
           >
-            Please spell your nickname.
-          </h1>
+            <p class="zoomInDown">Please spell your nickname.</p>
+            <p>
+              {trimedName.length
+                ? `Your nickname is "${capitalizeFirstLetter(trimedName)}"`
+                : ""}
+            </p>
+          </div>
         </Container>
       </>
     );
