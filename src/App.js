@@ -350,35 +350,11 @@ class Scene extends React.Component {
 
     World.add(world, [...collectorBodies]);
 
-    Matter.Events.on(engine, "collisionEnd", function (event) {
-      const { pairs } = event;
-      const { bodyA } = pairs[0];
-      const { category: cateA } = pairs[0].bodyA.collisionFilter;
-      const {
-        category: cateB,
-        group: alphabetIndex,
-      } = pairs[0].bodyB.collisionFilter;
-      const cateBodyA = categoryName[cateA];
-      const cateBodyB = categoryName[cateB];
-
-      if (cateBodyB === categoryName[3] && cateBodyA === categoryName[2]) {
-        // console.log("colision between ", pairs[0].bodyA, pairs[0].bodyB);
-        Body.setAngle(bodyA, 0);
-        const { label: alphabetCollised } = bodyA;
-        console.log(
-          "colision end between " + alphabetCollised + " - " + alphabetIndex
-        );
-        var chars = _this.state.name.split("");
-        chars[alphabetIndex - 1] = " ";
-        chars.join("");
-        _this.setState({
-          name: chars.join(""),
-        });
-      }
-    });
+    Matter.Events.on(engine, "collisionEnd", function (event) {});
 
     Matter.Events.on(engine, "collisionActive", function (event) {
       const { pairs } = event;
+      let name = "    ";
 
       pairs.forEach((pair) => {
         const { bodyA } = pair;
@@ -393,13 +369,15 @@ class Scene extends React.Component {
         if (cateBodyB === categoryName[3] && cateBodyA === categoryName[2]) {
           Body.setAngle(bodyA, 0);
           const { label: alphabetCollised } = bodyA;
-          var chars = _this.state.name.split("");
+          var chars = name.split("");
           chars[alphabetIndex - 1] = alphabetCollised;
-          chars.join("");
-          _this.setState({
-            name: chars.join(""),
-          });
+
+          name = chars.join("");
         }
+      });
+
+      _this.setState({
+        name,
       });
     });
 
