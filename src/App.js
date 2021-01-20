@@ -1,5 +1,5 @@
 import React from "react";
-import ReactDOMServer from "react-dom/server";
+import anime from "animejs/lib/anime.es.js";
 import Matter from "matter-js";
 import styled from "styled-components";
 import $ from "jquery";
@@ -13,6 +13,8 @@ import R from "./svg/R";
 import S from "./svg/S";
 import frontLetter from "./png/frontLetter.png";
 import backLetter from "./png/backLetter.png";
+import bodyLetter from "./png/bodyLetter.png";
+import innerLetter from "./png/innerLetter.png";
 
 const Container = styled.div`
   width: 100%;
@@ -35,7 +37,14 @@ const CenterContainer = styled.div`
 
 const LetterContainer = styled.div`
   position: absolute;
+  width: 30%;
+  height: 50%;
+  transform: rotate(-10deg);
   img {
+    top: 20%;
+    left: 20%;
+    width: 100%;
+    height: 100%;
     position: absolute;
   }
 `;
@@ -147,6 +156,8 @@ function makePattern(pWidth) {
 }
 
 const defaultName = "gift";
+let width;
+let height;
 
 class Scene extends React.Component {
   constructor(props) {
@@ -162,8 +173,8 @@ class Scene extends React.Component {
     const _this = this;
     const engine = Engine.create();
     const { world } = engine;
-    const width = window.innerWidth; // (window.innerWidth * 80) / 100;
-    const height = window.innerHeight; // (window.innerHeight * 80) / 100;
+    width = window.innerWidth; // (window.innerWidth * 80) / 100;
+    height = window.innerHeight; // (window.innerHeight * 80) / 100;
     const wallthick = 10;
     const ratio = width < 720 ? 2 : width < 1080 ? 1.5 : 1.25;
 
@@ -462,7 +473,38 @@ class Scene extends React.Component {
   };
 
   onTestLetter = () => {
-    animateCSS("#frontLetter", "zoomOut");
+    const letter = anime.timeline();
+
+    letter.add({
+      targets: "#frontLetter",
+      easing: "linear",
+      translateY: [
+        {
+          value: [0, -120],
+          duration: 500,
+        },
+        {
+          value: [-120, -240],
+          duration: 500,
+        },
+      ],
+      scaleY: [
+        {
+          value: -1,
+          duration: 1000,
+        },
+      ],
+    });
+
+    letter.add({
+      targets: "#innerLetter",
+      translateX: 800,
+      translateY: 400,
+      scaleY: 3,
+      scaleX: 2,
+      rotate: "195deg",
+      duration: 2000,
+    });
   };
 
   render() {
@@ -472,9 +514,22 @@ class Scene extends React.Component {
     return (
       <>
         <Container ref="scene">
-          <LetterContainer>
-            <img id="backLetter" src={backLetter} alt="Logo" />
-            <img id="frontLetter" src={frontLetter} alt="Logo" />
+          <p
+            style={{
+              position: "absolute",
+              right: "25%",
+              top: "25%",
+              zIndex: 1,
+              transform: "rotate(10deg)",
+            }}
+          >
+            Happy สวัสดี
+          </p>
+          <LetterContainer id="letter">
+            <img id="backLetter" src={backLetter} alt="back" />
+            <img id="innerLetter" src={innerLetter} alt="inner" />
+            <img id="bodyLetter" src={bodyLetter} alt="body" />
+            <img id="frontLetter" src={frontLetter} alt="front"></img>
           </LetterContainer>
           <CenterContainer>
             {!submited && (
