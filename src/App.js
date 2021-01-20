@@ -11,13 +11,33 @@ import P from "./svg/P";
 import E from "./svg/E";
 import R from "./svg/R";
 import S from "./svg/S";
+import frontLetter from "./png/frontLetter.png";
+import backLetter from "./png/backLetter.png";
 
 const Container = styled.div`
   width: 100%;
   height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+`;
+
+const CenterContainer = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  span {
+    display: block;
+    white-space: nowrap;
+    margin: 20 0;
+    font-size: calc(24px + 2vw);
+  }
+`;
+
+const LetterContainer = styled.div`
+  position: absolute;
+  img {
+    position: absolute;
+  }
 `;
 
 const {
@@ -44,6 +64,31 @@ const randomColor = () =>
 //   }
 //   return color;
 // };
+
+const animateCSS = (
+  element,
+  animation,
+  duration = "2s",
+  prefix = "animate__"
+) => {
+  // We create a Promise and return it
+  return new Promise((resolve, reject) => {
+    const animationName = `${prefix}${animation}`;
+    const node = document.querySelector(element);
+    node.style.setProperty("--animate-duration", duration);
+
+    node.classList.add(`${prefix}animated`, animationName);
+
+    // When the animation ends, we clean the classes and resolve the Promise
+    function handleAnimationEnd(event) {
+      event.stopPropagation();
+      node.classList.remove(`${prefix}animated`, animationName);
+      resolve("Animation ended");
+    }
+
+    node.addEventListener("animationend", handleAnimationEnd, { once: true });
+  });
+};
 
 function shuffle(array) {
   var currentIndex = array.length,
@@ -101,15 +146,19 @@ function makePattern(pWidth) {
   return ctx.createPattern(canvas, "repeat");
 }
 
+const defaultName = "gift";
+
 class Scene extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: "    ",
+      name: defaultName,
+      submited: false,
     };
   }
 
   componentDidMount() {
+    animateCSS("#intro", "zoomInDown");
     const _this = this;
     const engine = Engine.create();
     const { world } = engine;
@@ -150,12 +199,14 @@ class Scene extends React.Component {
         visible: false,
       },
     };
-    World.add(world, [
+    const walls = [
       Bodies.rectangle(0, height / 2, wallthick, height, wallOptions), //left
       Bodies.rectangle(width, height / 2, wallthick, height, wallOptions), //right
       Bodies.rectangle(width / 2, 0, width, wallthick, wallOptions), // top
       Bodies.rectangle(width / 2, height, width, wallthick, wallOptions), // bottom
-    ]);
+    ];
+
+    World.add(world, walls);
     // end add wall
 
     // add bodies from SVG
@@ -287,7 +338,7 @@ class Scene extends React.Component {
     //   });
     // });
 
-    World.add(world, [...bodiesToPush]);
+    World.add(world, bodiesToPush);
 
     const collectorBodies = [];
     const widthStart = width / 8;
@@ -297,7 +348,7 @@ class Scene extends React.Component {
       const size = widthStart;
       const thick = 20;
       const xPos = widthStart * index * 2 - widthStart;
-      const yPos = height / 3;
+      const yPos = height / 3 / ratio;
       const collectorBodyOptions = {
         collisionFilter: {
           category: collectorCategory,
@@ -354,7 +405,7 @@ class Scene extends React.Component {
 
     Matter.Events.on(engine, "collisionActive", function (event) {
       const { pairs } = event;
-      let name = "    ";
+      let name = defaultName;
 
       pairs.forEach((pair) => {
         const { bodyA } = pair;
@@ -384,26 +435,62 @@ class Scene extends React.Component {
     Engine.run(engine);
 
     Render.run(render);
+
+    _this.setState({
+      world,
+      collectorBodies,
+      walls,
+    });
   }
 
+  onSubmit = () => {
+    console.log("this.state", this.state.name);
+    this.state.collectorBodies.forEach((collector) => {
+      Body.setStatic(collector, false);
+    });
+    World.remove(this.state.world, this.state.walls);
+    Promise.all([
+      animateCSS("#intro", "zoomOut"),
+      animateCSS("#showname", "zoomOut"),
+      animateCSS("#submitBtn", "zoomOut"),
+    ]).then(() => {
+      World.remove(this.state.world, this.state.collectorBodies);
+      this.setState({
+        submited: true,
+      });
+    });
+  };
+
+  onTestLetter = () => {
+    animateCSS("#frontLetter", "zoomOut");
+  };
+
   render() {
-    const trimedName = this.state.name.replaceAll(" ", "");
+    const { name, submited } = this.state;
+    const trimedName = name.replaceAll(" ", "");
 
     return (
       <>
         <Container ref="scene">
-          <div
-            style={{
-              position: "absolute",
-            }}
-          >
-            <p class="zoomInDown">Please spell your nickname.</p>
-            <p>
-              {trimedName.length
-                ? `Your nickname is "${capitalizeFirstLetter(trimedName)}"`
-                : ""}
-            </p>
-          </div>
+          <LetterContainer>
+            <img id="backLetter" src={backLetter} alt="Logo" />
+            <img id="frontLetter" src={frontLetter} alt="Logo" />
+          </LetterContainer>
+          <CenterContainer>
+            {!submited && (
+              <>
+                <span id="intro">Please spell your nickname.</span>
+                <span id="showname">
+                  {trimedName.length
+                    ? `Your nickname is "${capitalizeFirstLetter(trimedName)}"`
+                    : ""}
+                </span>
+                <button id="submitBtn" onClick={this.onTestLetter}>
+                  Submit
+                </button>
+              </>
+            )}
+          </CenterContainer>
         </Container>
       </>
     );
