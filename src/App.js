@@ -37,16 +37,28 @@ const CenterContainer = styled.div`
 
 const LetterContainer = styled.div`
   position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 30%;
+  min-width: 300px;
   height: 50%;
-  transform: rotate(-10deg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
   img {
-    top: 20%;
-    left: 20%;
     width: 100%;
     height: 100%;
     position: absolute;
   }
+`;
+
+const LetterTextContainer = styled.div`
+  width: 50%;
+  background: #f6c990;
+  height: 40%;
+  border: 5px solid black;
+  border-radius: 12px;
 `;
 
 const {
@@ -474,18 +486,16 @@ class Scene extends React.Component {
 
   onTestLetter = () => {
     const letter = anime.timeline();
-
+    const frontLetterHeight =
+      document.querySelector("#frontLetter").offsetHeight / 4;
+    console.log("frontLetterHeight", frontLetterHeight);
     letter.add({
       targets: "#frontLetter",
       easing: "linear",
       translateY: [
         {
-          value: [0, -120],
-          duration: 500,
-        },
-        {
-          value: [-120, -240],
-          duration: 500,
+          value: [0, -frontLetterHeight * 2],
+          duration: 1000,
         },
       ],
       scaleY: [
@@ -497,12 +507,40 @@ class Scene extends React.Component {
     });
 
     letter.add({
+      targets: "#bodyLetter",
+      zIndex: 1,
+      duration: 100,
+    });
+
+    letter.add({
       targets: "#innerLetter",
-      translateX: 800,
-      translateY: 400,
+      easing: "linear",
+      zIndex: [
+        {
+          value: 1,
+          duration: 100,
+        },
+      ],
+      translateY: [
+        {
+          value: [0, -100],
+          duration: 500,
+        },
+      ],
+    });
+
+    letter.add({
+      targets: "#innerLetter",
+      easing: "linear",
+      zIndex: 2,
+      duration: 100,
+    });
+
+    letter.add({
+      targets: "#innerLetter",
+      translateY: 0,
       scaleY: 3,
       scaleX: 2,
-      rotate: "195deg",
       duration: 2000,
     });
   };
@@ -514,20 +552,10 @@ class Scene extends React.Component {
     return (
       <>
         <Container ref="scene">
-          <p
-            style={{
-              position: "absolute",
-              right: "25%",
-              top: "25%",
-              zIndex: 1,
-              transform: "rotate(10deg)",
-            }}
-          >
-            Happy สวัสดี
-          </p>
           <LetterContainer id="letter">
             <img id="backLetter" src={backLetter} alt="back" />
-            <img id="innerLetter" src={innerLetter} alt="inner" />
+            {/* <img id="innerLetter" src={innerLetter} alt="inner" /> */}
+            <LetterTextContainer id="innerLetter"></LetterTextContainer>
             <img id="bodyLetter" src={bodyLetter} alt="body" />
             <img id="frontLetter" src={frontLetter} alt="front"></img>
           </LetterContainer>
