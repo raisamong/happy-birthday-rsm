@@ -59,6 +59,15 @@ const LetterTextContainer = styled.div`
   height: 40%;
   border: 5px solid black;
   border-radius: 12px;
+  text-align: center;
+  font-size: calc(12px + 0.5vw);
+  padding: 1rem;
+  position: relative;
+  #letterLine3 {
+    position: absolute;
+    bottom: 1rem;
+    right: 2rem;
+  }
 `;
 
 const {
@@ -485,6 +494,7 @@ class Scene extends React.Component {
   };
 
   onTestLetter = () => {
+    const _this = this;
     const letter = anime.timeline();
     const frontLetterHeight =
       document.querySelector("#frontLetter").offsetHeight / 4;
@@ -542,7 +552,53 @@ class Scene extends React.Component {
       scaleY: 3,
       scaleX: 2,
       duration: 2000,
+      complete: function (anim) {
+        _this.typeWriter();
+      },
     });
+  };
+
+  typeWriter = () => {
+    const texts = [
+      {
+        text: "สุขสันต์วันเกิดนะ น้องกิฟ",
+        target: "letterLine1",
+      },
+      {
+        text:
+          "พี่ขอให้กิฟมีความสุขมากๆ สุขภาพร่างกายแข็งแรง มีหน้าที่การงานก้าวหน้า คิดอะไรก็สมปรารถนา เป็นน้องที่น่ารักตลอดไปเลยนะ",
+        target: "letterLine2",
+      },
+      {
+        text: "จาก พี่สไปร์ท",
+        target: "letterLine3",
+      },
+      {
+        text: "Happy Birthday ไอต้าวววกิฟ",
+        target: "letterLine4",
+      },
+    ];
+    const speed = 100;
+    let i = 0;
+    let j = 0;
+
+    const append = () => {
+      if (!texts[j]) return;
+
+      const { text, target } = texts[j];
+
+      if (i < text.length) {
+        document.getElementById(target).innerHTML += text.charAt(i);
+        i++;
+        setTimeout(append, speed);
+      } else {
+        i = 0;
+        j += 1;
+        setTimeout(append, speed);
+      }
+    };
+
+    append();
   };
 
   render() {
@@ -555,7 +611,14 @@ class Scene extends React.Component {
           <LetterContainer id="letter">
             <img id="backLetter" src={backLetter} alt="back" />
             {/* <img id="innerLetter" src={innerLetter} alt="inner" /> */}
-            <LetterTextContainer id="innerLetter"></LetterTextContainer>
+            <LetterTextContainer id="innerLetter">
+              <span id="letterLine1"></span>
+              <br />
+              <span id="letterLine2"></span>
+              <br />
+              <span id="letterLine4"></span>
+              <span id="letterLine3"></span>
+            </LetterTextContainer>
             <img id="bodyLetter" src={bodyLetter} alt="body" />
             <img id="frontLetter" src={frontLetter} alt="front"></img>
           </LetterContainer>
