@@ -1,7 +1,7 @@
 import React from "react";
 import anime from "animejs/lib/anime.es.js";
 import Matter from "matter-js";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
 import $ from "jquery";
 import G from "./svg/G";
 import I from "./svg/I";
@@ -19,6 +19,35 @@ import innerLetter from "./png/innerLetter.png";
 const Container = styled.div`
   width: 100%;
   height: 100%;
+`;
+
+const gradient = keyframes`
+  0% { background-position: 0% 50% }
+  100% { background-position: 100%  }
+`;
+
+const gradientOut = keyframes`
+  0% { background-position: 100%  }
+  100% { background-position: 0% 50% }
+`;
+
+const StyledButton = styled.button`
+  background: linear-gradient(to right, #a2ccb6 0%, #fceeb5 50%, #ee786e 100%);
+  background-size: 500%;
+  border-radius: 5rem;
+  border: 3px solid black;
+  width: 100px;
+  height: 40px;
+  font-size: 30px;
+  font-family: "unicorn";
+  animation-name: ${gradientOut};
+  animation-duration: 0.5s;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+
+  &:hover {
+    animation-name: ${gradient};
+  }
 `;
 
 const CenterContainer = styled.div`
@@ -190,7 +219,6 @@ class Scene extends React.Component {
   }
 
   componentDidMount() {
-    animateCSS("#intro", "zoomInDown");
     const _this = this;
     const engine = Engine.create();
     const { world } = engine;
@@ -467,6 +495,9 @@ class Scene extends React.Component {
 
     Render.run(render);
 
+    animateCSS("#intro", "zoomInDown");
+    // animateCSS("#submitBtn", "bounceInUp");
+
     _this.setState({
       world,
       collectorBodies,
@@ -646,9 +677,9 @@ class Scene extends React.Component {
                 </span>
 
                 {trimedName.length ? null : <span id="warning" />}
-                <button id="submitBtn" onClick={this.onSubmit}>
+                <StyledButton id="submitBtn" onClick={this.onSubmit}>
                   Submit
-                </button>
+                </StyledButton>
               </>
             )}
           </CenterContainer>
