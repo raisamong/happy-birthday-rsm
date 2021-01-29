@@ -36,17 +36,17 @@ const StyledButton = styled.button`
   background-size: 500%;
   border-radius: 5rem;
   border: 3px solid black;
-  width: 100px;
-  height: 40px;
-  font-size: 30px;
-  font-family: "unicorn";
-  animation-name: ${gradientOut};
-  animation-duration: 0.5s;
-  animation-iteration-count: 1;
-  animation-fill-mode: forwards;
+  font-size: calc(18px + 2vw);
+  /* animation-name: ${gradientOut}; */
 
   &:hover {
     animation-name: ${gradient};
+    animation-duration: 0.5s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+  }
+  &:focus {
+    outline: none;
   }
 `;
 
@@ -222,8 +222,8 @@ class Scene extends React.Component {
     const _this = this;
     const engine = Engine.create();
     const { world } = engine;
-    width = window.innerWidth; // (window.innerWidth * 80) / 100;
-    height = window.innerHeight; // (window.innerHeight * 80) / 100;
+    width = $(window).width(); // (window.innerWidth * 80) / 100;
+    height = $(window).height(); // (window.innerHeight * 80) / 100;
     const wallthick = 10;
     const ratio = width < 720 ? 2 : width < 1080 ? 1.5 : 1.25;
 
@@ -496,7 +496,7 @@ class Scene extends React.Component {
     Render.run(render);
 
     animateCSS("#intro", "zoomInDown");
-    // animateCSS("#submitBtn", "bounceInUp");
+    animateCSS("#submitBtn", "bounceInUp", "3.5s");
 
     _this.setState({
       world,
@@ -650,6 +650,18 @@ class Scene extends React.Component {
     return (
       <>
         <Container ref="scene">
+          <ul className="bg-bubbles">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+          </ul>
           {submited && (
             <LetterContainer id="letter">
               <img id="backLetter" src={backLetter} alt="back" />
@@ -674,12 +686,13 @@ class Scene extends React.Component {
                   {trimedName.length
                     ? `Your nickname is "${capitalizeFirstLetter(trimedName)}"`
                     : ""}
+                  &nbsp;
                 </span>
 
                 {trimedName.length ? null : <span id="warning" />}
-                <StyledButton id="submitBtn" onClick={this.onSubmit}>
-                  Submit
-                </StyledButton>
+                <div id="submitBtn">
+                  <StyledButton onClick={this.onSubmit}>Submit</StyledButton>
+                </div>
               </>
             )}
           </CenterContainer>
