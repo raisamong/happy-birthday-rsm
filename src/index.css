@@ -209,6 +209,7 @@ code {
 }
 .bg-bubbles li:nth-child(5) {
   left: 70%;
+  animation-duration: 50s;
 }
 .bg-bubbles li:nth-child(6) {
   left: 80%;
@@ -222,26 +223,28 @@ code {
   width: 160px;
   height: 160px;
   animation-delay: 7s;
+  animation-duration: 50s;
 }
 .bg-bubbles li:nth-child(8) {
   left: 55%;
   width: 20px;
   height: 20px;
   animation-delay: 15s;
-  animation-duration: 40s;
+  animation-duration: 10s;
 }
 .bg-bubbles li:nth-child(9) {
   left: 25%;
   width: 10px;
   height: 10px;
   animation-delay: 2s;
-  animation-duration: 40s;
+  animation-duration: 30s;
   background-color: rgba(255, 255, 255, 0.3);
 }
 .bg-bubbles li:nth-child(10) {
   left: 90%;
   width: 160px;
   height: 160px;
+  animation-duration: 15s;
   animation-delay: 11s;
 }
 
