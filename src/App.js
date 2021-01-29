@@ -176,7 +176,7 @@ function makePattern(pWidth) {
   return ctx.createPattern(canvas, "repeat");
 }
 
-const defaultName = "gift";
+const defaultName = "    ";
 let width;
 let height;
 
@@ -454,7 +454,6 @@ class Scene extends React.Component {
           const { label: alphabetCollised } = bodyA;
           var chars = name.split("");
           chars[alphabetIndex - 1] = alphabetCollised;
-
           name = chars.join("");
         }
       });
@@ -476,7 +475,16 @@ class Scene extends React.Component {
   }
 
   onSubmit = () => {
-    console.log("this.state", this.state.name);
+    const trimedName = this.state.name.replaceAll(" ", "");
+    if (!trimedName) {
+      document.getElementById("warning").innerHTML = "Your name is required!";
+      animateCSS("#warning", "headShake", "1.0s");
+      return;
+    }
+    if (trimedName.toLowerCase() !== "gift") {
+      animateCSS("#showname", "headShake", "1.0s");
+      return;
+    }
     this.state.collectorBodies.forEach((collector) => {
       Body.setStatic(collector, false);
     });
@@ -487,74 +495,81 @@ class Scene extends React.Component {
       animateCSS("#submitBtn", "zoomOut"),
     ]).then(() => {
       World.remove(this.state.world, this.state.collectorBodies);
-      this.setState({
-        submited: true,
-      });
+      this.setState(
+        {
+          submited: true,
+        },
+        () => {
+          this.onTestLetter();
+        }
+      );
     });
   };
 
   onTestLetter = () => {
     const _this = this;
-    const letter = anime.timeline();
-    const frontLetterHeight =
-      document.querySelector("#frontLetter").offsetHeight / 4;
-    console.log("frontLetterHeight", frontLetterHeight);
-    letter.add({
-      targets: "#frontLetter",
-      easing: "linear",
-      translateY: [
-        {
-          value: [0, -frontLetterHeight * 2],
-          duration: 1000,
-        },
-      ],
-      scaleY: [
-        {
-          value: -1,
-          duration: 1000,
-        },
-      ],
-    });
+    animateCSS("#letter", "zoomInDown").then(() => {
+      const letter = anime.timeline();
+      const frontLetterHeight =
+        document.querySelector("#frontLetter").offsetHeight / 4;
+      console.log("frontLetterHeight", frontLetterHeight);
+      letter.add({
+        targets: "#frontLetter",
+        easing: "linear",
+        translateY: [
+          {
+            value: [0, -frontLetterHeight * 2],
+            duration: 1000,
+          },
+        ],
+        scaleY: [
+          {
+            value: -1,
+            duration: 1000,
+          },
+        ],
+      });
 
-    letter.add({
-      targets: "#bodyLetter",
-      zIndex: 1,
-      duration: 100,
-    });
+      letter.add({
+        targets: "#bodyLetter",
+        zIndex: 1,
+        duration: 100,
+      });
 
-    letter.add({
-      targets: "#innerLetter",
-      easing: "linear",
-      zIndex: [
-        {
-          value: 1,
-          duration: 100,
+      letter.add({
+        targets: "#innerLetter",
+        easing: "linear",
+        zIndex: [
+          {
+            value: 1,
+            duration: 100,
+          },
+        ],
+        translateY: [
+          {
+            value: [0, -100],
+            duration: 500,
+          },
+        ],
+      });
+
+      letter.add({
+        targets: "#innerLetter",
+        easing: "linear",
+        zIndex: 2,
+        duration: 100,
+      });
+
+      letter.add({
+        targets: "#innerLetter",
+        translateY: 0,
+        scaleY: 3,
+        scaleX: 2,
+        duration: 2000,
+        complete: function (anim) {
+          _this.typeWriter();
         },
-      ],
-      translateY: [
-        {
-          value: [0, -100],
-          duration: 500,
-        },
-      ],
-    });
-
-    letter.add({
-      targets: "#innerLetter",
-      easing: "linear",
-      zIndex: 2,
-      duration: 100,
-    });
-
-    letter.add({
-      targets: "#innerLetter",
-      translateY: 0,
-      scaleY: 3,
-      scaleX: 2,
-      duration: 2000,
-      complete: function (anim) {
-        _this.typeWriter();
-      },
+      });
     });
   };
 
@@ -566,16 +581,12 @@ class Scene extends React.Component {
       },
       {
         text:
-          "พี่ขอให้กิฟมีความสุขมากๆ สุขภาพร่างกายแข็งแรง มีหน้าที่การงานก้าวหน้า คิดอะไรก็สมปรารถนา เป็นน้องที่น่ารักตลอดไปเลยนะ",
+          "พี่ขอให้กิฟมีความสุขมากๆ สุขภาพร่างกายแข็งแรง มีหน้าที่การงานก้าวหน้ามั่นคง คิดอะไรก็สมปรารถนา เป็นน้องที่น่ารักตลอดไปเลยนะ",
         target: "letterLine2",
       },
       {
         text: "จาก พี่สไปร์ท",
         target: "letterLine3",
-      },
-      {
-        text: "Happy Birthday ไอต้าวววกิฟ",
-        target: "letterLine4",
       },
     ];
     const speed = 100;
@@ -608,20 +619,22 @@ class Scene extends React.Component {
     return (
       <>
         <Container ref="scene">
-          <LetterContainer id="letter">
-            <img id="backLetter" src={backLetter} alt="back" />
-            {/* <img id="innerLetter" src={innerLetter} alt="inner" /> */}
-            <LetterTextContainer id="innerLetter">
-              <span id="letterLine1"></span>
-              <br />
-              <span id="letterLine2"></span>
-              <br />
-              <span id="letterLine4"></span>
-              <span id="letterLine3"></span>
-            </LetterTextContainer>
-            <img id="bodyLetter" src={bodyLetter} alt="body" />
-            <img id="frontLetter" src={frontLetter} alt="front"></img>
-          </LetterContainer>
+          {submited && (
+            <LetterContainer id="letter">
+              <img id="backLetter" src={backLetter} alt="back" />
+              {/* <img id="innerLetter" src={innerLetter} alt="inner" /> */}
+              <LetterTextContainer id="innerLetter">
+                <span id="letterLine1"></span>
+                <br />
+                <span id="letterLine2"></span>
+                <br />
+                <span id="letterLine3"></span>
+              </LetterTextContainer>
+              <img id="bodyLetter" src={bodyLetter} alt="body" />
+              <img id="frontLetter" src={frontLetter} alt="front"></img>
+            </LetterContainer>
+          )}
+
           <CenterContainer>
             {!submited && (
               <>
@@ -631,7 +644,9 @@ class Scene extends React.Component {
                     ? `Your nickname is "${capitalizeFirstLetter(trimedName)}"`
                     : ""}
                 </span>
-                <button id="submitBtn" onClick={this.onTestLetter}>
+
+                {trimedName.length ? null : <span id="warning" />}
+                <button id="submitBtn" onClick={this.onSubmit}>
                   Submit
                 </button>
               </>
