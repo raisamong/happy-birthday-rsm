@@ -31,6 +31,32 @@ const gradientOut = keyframes`
   100% { background-position: 0% 50% }
 `;
 
+const FlexCenter = styled.div`
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: -1;
+`;
+
+const Closer = styled.div`
+  opacity: 0;
+  height: 50px;
+  width: 50px;
+  border-radius: 50px;
+  background: #000;
+`;
+const CloserText = styled.span`
+  position: absolute;
+  opacity: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+`;
+
 const StyledButton = styled.button`
   background: linear-gradient(to right, #a2ccb6 0%, #fceeb5 50%, #ee786e 100%);
   background-size: 500%;
@@ -39,7 +65,7 @@ const StyledButton = styled.button`
   font-size: calc(18px + 2vw);
   /* animation-name: ${gradientOut}; */
 
-  &:hover {
+  /* &:hover {
     animation-name: ${gradient};
     animation-duration: 0.5s;
     animation-iteration-count: 1;
@@ -47,7 +73,14 @@ const StyledButton = styled.button`
   }
   &:focus {
     outline: none;
-  }
+  } */
+`;
+
+const CloseContainer = styled.div`
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 `;
 
 const CenterContainer = styled.div`
@@ -319,7 +352,6 @@ class Scene extends React.Component {
       });
 
     World.add(world, mouseConstraint);
-    console.log("mouseConstraint", mouseConstraint);
 
     Matter.Events.on(mouseConstraint, "mousedown", function (e) {
       // console.log("mousedown", e);
@@ -543,7 +575,6 @@ class Scene extends React.Component {
       const letter = anime.timeline();
       const frontLetterHeight =
         document.querySelector("#frontLetter").offsetHeight / 4;
-      console.log("frontLetterHeight", frontLetterHeight);
       letter.add({
         targets: "#frontLetter",
         easing: "linear",
@@ -598,13 +629,19 @@ class Scene extends React.Component {
         scaleX: 2,
         duration: 2000,
         complete: function (anim) {
-          _this.typeWriter();
+          _this.typeWriter(() => {
+            setTimeout(() => {
+              _this.setState({
+                finished: true,
+              });
+            }, 1000);
+          });
         },
       });
     });
   };
 
-  typeWriter = () => {
+  typeWriter = (cb) => {
     const texts = [
       {
         text: "สุขสันต์วันเกิดนะ น้องกิฟ",
@@ -612,7 +649,7 @@ class Scene extends React.Component {
       },
       {
         text:
-          "พี่ขอให้กิฟมีความสุขมากๆ สุขภาพร่างกายแข็งแรง มีหน้าที่การงานก้าวหน้ามั่นคง คิดอะไรก็สมปรารถนา เป็นน้องที่น่ารักตลอดไปเลยนะ",
+          "พี่ขอให้กิฟมีความสุขมากๆ สุขภาพร่างกายแข็งแรง มีหน้าที่การงานก้าวหน้ามั่นคง คิดอะไรก็สมปรารถนา สวย รวย เก่ง ปังๆ เป็นน้องที่น่ารักตลอดไปเลยนะ",
         target: "letterLine2",
       },
       {
@@ -625,7 +662,10 @@ class Scene extends React.Component {
     let j = 0;
 
     const append = () => {
-      if (!texts[j]) return;
+      if (!texts[j]) {
+        cb();
+        return;
+      }
 
       const { text, target } = texts[j];
 
@@ -643,8 +683,37 @@ class Scene extends React.Component {
     append();
   };
 
+  onClose = () => {
+    const timeline = anime.timeline();
+    timeline.add({
+      targets: "#closeContainer",
+      zIndex: 5,
+      duration: 100,
+    });
+    timeline.add({
+      targets: "#closer",
+      opacity: 1,
+      duration: 1000,
+      scaleY: 5,
+      scaleX: 5,
+    });
+
+    timeline.add({
+      targets: "#closerText",
+      opacity: 1,
+      duration: 1500,
+    });
+    timeline.add({
+      targets: "#closer",
+      opacity: 1,
+      scaleY: 50,
+      scaleX: 50,
+      duration: 5000,
+    });
+  };
+
   render() {
-    const { name, submited } = this.state;
+    const { name, submited, finished } = this.state;
     const trimedName = name.replaceAll(" ", "");
 
     return (
@@ -696,6 +765,15 @@ class Scene extends React.Component {
               </>
             )}
           </CenterContainer>
+          {finished && (
+            <CloseContainer id="closeBtn">
+              <StyledButton onClick={this.onClose}>Close</StyledButton>
+            </CloseContainer>
+          )}
+          <FlexCenter id="closeContainer">
+            <Closer id="closer" />
+            <CloserText id="closerText">Thank you</CloserText>
+          </FlexCenter>
         </Container>
       </>
     );
