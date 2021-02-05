@@ -39,6 +39,7 @@ const FlexCenter = styled.div`
   justify-content: center;
   align-items: center;
   z-index: -1;
+  overflow: hidden;
 `;
 
 const Closer = styled.div`
