@@ -26,5 +26,5 @@ yarn.lock
 .eslintcache
 
 # firebase
-.firebasesrc
+.firebaserc
 firebase.json
